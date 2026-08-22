@@ -52,3 +52,15 @@ jobs:
           test "${{ steps.render.outputs.count }}" = "0"
           test "${{ steps.render.outputs.credits }}" = "0"
           test "${{ steps.render.outputs.files }}" = "[]"
+
+      # And again by the reference the README tells people to write, which is
+      # the only version of this that proves the published tag is usable.
+      - id: published
+        uses: ironfang-ltd/renderwolf-action@v1
+        with:
+          api-key: not-a-real-key
+          urls: https://example.com/
+          output-dir: ci-check-published
+          fail-on-error: false
+          summary: false
+      - run: test "${{ steps.published.outputs.count }}" = "0"
