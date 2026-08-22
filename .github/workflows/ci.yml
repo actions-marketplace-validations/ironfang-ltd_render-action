@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The action has no dependencies and no build step, so the whole of CI
+      # is: does it parse on the runtime the manifest declares, and does the
+      # manifest still point at the file.
+      - run: node --check index.js
+      - run: |
+          test "$(yq '.runs.main' action.yml)" = index.js
+          test "$(yq '.runs.using' action.yml)" = node20
+
+      # A run with no key must fail, and say why. It is the cheapest possible
+      # guard against the action silently passing when it did nothing.
+      - run: |
+          if node index.js; then
+            echo "the action exited 0 with no api-key" >&2
+            exit 1
+          fi

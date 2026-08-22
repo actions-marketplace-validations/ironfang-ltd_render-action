@@ -1,0 +1,89 @@
+name: Renderwolf
+description: Capture screenshots and PDFs of pages in CI - deploy previews, visual audits, generated images
+author: Ironfang Ltd
+
+branding:
+  icon: camera
+  color: gray-dark
+
+inputs:
+  api-key:
+    description: A Renderwolf API key. Pass it from a secret, never inline.
+    required: true
+  urls:
+    description: URLs to render, one per line.
+    required: false
+  html:
+    description: Raw HTML to render, instead of a URL.
+    required: false
+  kind:
+    description: What to render - screenshot, pdf or image (a saved template).
+    required: false
+    default: screenshot
+  template:
+    description: Template id, for kind=image.
+    required: false
+  vars:
+    description: JSON object of template variables, for kind=image.
+    required: false
+  output-dir:
+    description: Directory to write the files into. Created if missing.
+    required: false
+    default: renderwolf
+  file-name:
+    description: Name for the file, without an extension. Numbered when there is more than one. Defaults to a name made from the URL.
+    required: false
+  format:
+    description: png, jpeg or webp. Ignored for PDFs.
+    required: false
+    default: png
+  width:
+    description: Viewport width in pixels.
+    required: false
+  height:
+    description: Viewport height in pixels.
+    required: false
+  full-page:
+    description: Capture the whole scrollable page rather than the viewport.
+    required: false
+    default: 'false'
+  selector:
+    description: Capture one element instead of the page, e.g. "#hero".
+    required: false
+  device:
+    description: desktop, tablet or mobile - a viewport, density, mobile flag and user agent together.
+    required: false
+  dark-mode:
+    description: Render as a visitor who prefers a dark colour scheme.
+    required: false
+    default: 'false'
+  quality:
+    description: 1-100, for jpeg and webp.
+    required: false
+  delay-ms:
+    description: Extra wait after the page settles, in milliseconds.
+    required: false
+  fail-on-error:
+    description: Fail the step if any render fails. Set false to capture what you can and carry on.
+    required: false
+    default: 'true'
+  summary:
+    description: Write a table of what was captured to the job summary.
+    required: false
+    default: 'true'
+  base-url:
+    description: API base. Only needed to point at something other than production.
+    required: false
+    default: https://api.ironfang.uk/renderwolf
+
+outputs:
+  files:
+    description: JSON array of the files written, in the order the URLs were given.
+  count:
+    description: How many files were written.
+  credits:
+    description: Total credits the step spent. Cache hits cost nothing and count as zero.
+
+runs:
+  using: node20
+  main: index.js
