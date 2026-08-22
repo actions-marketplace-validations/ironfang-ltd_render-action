@@ -28,3 +28,27 @@ jobs:
             echo "the action exited 0 with no api-key" >&2
             exit 1
           fi
+
+  # Running the file proves it parses. This proves it works as an action:
+  # the manifest resolves, the runner marshals INPUT_API-KEY and friends with
+  # their dashes intact, node20 runs it, and the outputs file comes back
+  # readable. A rejected key is enough for all of that - no secret needed, so
+  # it runs on a fork's pull request too.
+  acts-like-an-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: render
+        uses: ./
+        with:
+          api-key: not-a-real-key
+          urls: https://example.com/
+          output-dir: ci-check
+          file-name: probe
+          fail-on-error: false
+          summary: false
+      - name: the step reported nothing rendered, rather than nothing at all
+        run: |
+          test "${{ steps.render.outputs.count }}" = "0"
+          test "${{ steps.render.outputs.credits }}" = "0"
+          test "${{ steps.render.outputs.files }}" = "[]"
