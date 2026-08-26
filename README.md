@@ -15,7 +15,7 @@ No dependencies: one file, Node 20, `fetch`. Nothing is bundled and there is no
 ```
 
 Get a key from the [Renderwolf portal](https://portal.ironfang.uk). A free
-account renders 100 credits a month with no card; free output carries a small
+account renders 250 credits a month with no card; free output carries a small
 Renderwolf badge, and any paid plan removes it.
 
 ## Auditing a deploy preview
