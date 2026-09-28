@@ -1,4 +1,4 @@
-// Renderwolf for GitHub Actions.
+// Ironfang Render for GitHub Actions.
 //
 // No dependencies, deliberately. A JavaScript action has to ship whatever it
 // imports - either node_modules committed to the repository or a bundler step
@@ -149,7 +149,7 @@ function requestFor(target, kind, format) {
 async function render({ baseUrl, apiKey, target, kind, format, outputDir, index, total }) {
     const { path: apiPath, body } = requestFor(target, kind, format);
 
-    // Generous, but finite. Renderwolf has its own timeouts; this one is for
+    // Generous, but finite. Ironfang Render has its own timeouts; this one is for
     // the connection that never answers, which would otherwise hold the job
     // open until the job's own timeout hours later.
     const response = await fetch(baseUrl.replace(/\/$/, '') + apiPath, {
@@ -200,7 +200,7 @@ function writeSummary(results, failures) {
     );
     const failed = failures.map((f) => `| \`${f.target}\` | ${f.message} |`);
 
-    let md = `## Renderwolf\n\n`;
+    let md = `## Ironfang Render\n\n`;
     if (rows.length) {
         md += `| Source | File | Size | Time | Credits |\n|---|---|---|---|---|\n${rows.join('\n')}\n\n`;
     }
@@ -246,7 +246,7 @@ async function main() {
     const outputDir = input('output-dir') || 'renderwolf';
     fs.mkdirSync(outputDir, { recursive: true });
 
-    const baseUrl = input('base-url') || 'https://api.ironfang.com/renderwolf';
+    const baseUrl = input('base-url') || 'https://api.ironfang.com/render';
     const results = [];
     const failures = [];
 

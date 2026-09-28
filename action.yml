@@ -1,4 +1,4 @@
-name: Renderwolf Screenshots
+name: Ironfang Render Screenshots
 description: Capture screenshots and PDFs of pages in CI - deploy previews, visual audits, generated images
 author: Ironfang Ltd
 
@@ -8,7 +8,7 @@ branding:
 
 inputs:
   api-key:
-    description: A Renderwolf API key. Pass it from a secret, never inline.
+    description: An Ironfang API key with the render scope. Pass it from a secret, never inline.
     required: true
   urls:
     description: URLs to render, one per line.
@@ -74,7 +74,7 @@ inputs:
   base-url:
     description: API base. Only needed to point at something other than production.
     required: false
-    default: https://api.ironfang.com/renderwolf
+    default: https://api.ironfang.com/render
 
 outputs:
   files:

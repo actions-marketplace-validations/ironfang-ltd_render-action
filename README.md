@@ -1,4 +1,8 @@
-# Renderwolf for GitHub Actions
+# Ironfang Render for GitHub Actions
+
+Formerly `renderwolf-action`: workflows that still say
+`ironfang-ltd/renderwolf-action@v1` keep working, because GitHub redirects
+the old name.
 
 Capture screenshots and PDFs of pages from a workflow. Point it at a deploy
 preview and keep the images as build artefacts, print a table of what was
@@ -8,15 +12,15 @@ No dependencies: one file, Node 20, `fetch`. Nothing is bundled and there is no
 `node_modules` to keep in step with the source.
 
 ```yaml
-- uses: ironfang-ltd/renderwolf-action@v1
+- uses: ironfang-ltd/render-action@v1
   with:
-    api-key: ${{ secrets.RENDERWOLF_API_KEY }}
+    api-key: ${{ secrets.IRONFANG_API_KEY }}
     urls: https://example.com/
 ```
 
-Get a key from the [Renderwolf portal](https://portal.ironfang.com). A free
+Get a key from the [Ironfang portal](https://portal.ironfang.com). A free
 account renders 250 credits a month with no card; free output carries a small
-Renderwolf badge, and any paid plan removes it.
+Ironfang Render badge, and any paid plan removes it.
 
 ## Auditing a deploy preview
 
@@ -33,9 +37,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: shots
-        uses: ironfang-ltd/renderwolf-action@v1
+        uses: ironfang-ltd/render-action@v1
         with:
-          api-key: ${{ secrets.RENDERWOLF_API_KEY }}
+          api-key: ${{ secrets.IRONFANG_API_KEY }}
           urls: |
             ${{ steps.deploy.outputs.preview-url }}/
             ${{ steps.deploy.outputs.preview-url }}/pricing
@@ -66,7 +70,7 @@ to catch a dark theme that only breaks in CI.
 | `kind` | `screenshot` | `screenshot`, `pdf`, or `image` for a saved template. |
 | `template` | - | Template id, for `kind: image`. |
 | `vars` | - | JSON object of template variables, for `kind: image`. |
-| `output-dir` | `renderwolf` | Where to write. Created if missing. |
+| `output-dir` | `renderwolf` | Where to write. Created if missing. (The folder keeps its old name within v1, so existing workflows that read it keep working.) |
 | `file-name` | from the URL | Name without an extension. Numbered when there is more than one. |
 | `format` | `png` | `png`, `jpeg` or `webp`. Ignored for PDFs. |
 | `width` / `height` | API defaults | Viewport size in pixels. |

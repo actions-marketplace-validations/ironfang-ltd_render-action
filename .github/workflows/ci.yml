@@ -56,7 +56,7 @@ jobs:
       # And again by the reference the README tells people to write, which is
       # the only version of this that proves the published tag is usable.
       - id: published
-        uses: ironfang-ltd/renderwolf-action@v1
+        uses: ironfang-ltd/render-action@v1
         with:
           api-key: not-a-real-key
           urls: https://example.com/
