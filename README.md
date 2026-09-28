@@ -14,7 +14,7 @@ No dependencies: one file, Node 20, `fetch`. Nothing is bundled and there is no
     urls: https://example.com/
 ```
 
-Get a key from the [Renderwolf portal](https://portal.ironfang.uk). A free
+Get a key from the [Renderwolf portal](https://portal.ironfang.com). A free
 account renders 250 credits a month with no card; free output carries a small
 Renderwolf badge, and any paid plan removes it.
 
@@ -96,4 +96,4 @@ and a job firing forty at once would spend its budget finding that out.
 Identical requests are served from cache and cost nothing, so re-running a
 workflow on an unchanged page is free.
 
-Full API reference: <https://ironfang.uk/renderwolf/docs>
+Full API reference: <https://ironfang.com/render/docs>

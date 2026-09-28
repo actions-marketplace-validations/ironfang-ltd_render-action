@@ -76,7 +76,7 @@ const usedNames = new Set();
 /**
  * fileNameFor turns a URL into something that is legible in an artefact
  * listing and safe on every filesystem a runner might be using:
- * https://ironfang.uk/renderwolf/docs -> ironfang-uk-renderwolf-docs.png
+ * https://ironfang.com/render/docs -> ironfang-com-render-docs.png
  */
 function fileNameFor(target, index, extension, total) {
     // An explicit name wins, and only gets a number when there is more than
@@ -246,7 +246,7 @@ async function main() {
     const outputDir = input('output-dir') || 'renderwolf';
     fs.mkdirSync(outputDir, { recursive: true });
 
-    const baseUrl = input('base-url') || 'https://api.ironfang.uk/renderwolf';
+    const baseUrl = input('base-url') || 'https://api.ironfang.com/renderwolf';
     const results = [];
     const failures = [];
 

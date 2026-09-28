@@ -74,7 +74,7 @@ inputs:
   base-url:
     description: API base. Only needed to point at something other than production.
     required: false
-    default: https://api.ironfang.uk/renderwolf
+    default: https://api.ironfang.com/renderwolf
 
 outputs:
   files:
