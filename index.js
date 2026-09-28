@@ -178,14 +178,14 @@ async function render({ baseUrl, apiKey, target, kind, format, outputDir, index,
     const filePath = path.join(outputDir, fileName);
     fs.writeFileSync(filePath, Buffer.from(await response.arrayBuffer()));
 
-    const credits = Number(response.headers.get('x-renderwolf-credits'));
+    const credits = Number(response.headers.get('x-ironfang-credits'));
     return {
         target: target || (kind === 'image' ? input('template') : 'html'),
         path: filePath,
         bytes: fs.statSync(filePath).size,
         credits: Number.isFinite(credits) ? credits : 0,
-        cached: response.headers.get('x-renderwolf-cache') === 'hit',
-        renderMs: Number(response.headers.get('x-renderwolf-render-ms')) || null,
+        cached: response.headers.get('x-ironfang-cache') === 'hit',
+        renderMs: Number(response.headers.get('x-ironfang-render-ms')) || null,
     };
 }
 
