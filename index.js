@@ -159,34 +159,59 @@ async function render({ baseUrl, apiKey, target, kind, format, outputDir, index,
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
-    if (!response.ok) {
-        // The API writes its errors for a person - "monthly credits
-        // exhausted", "too many renders of that site per minute" - so pass the
-        // message through rather than reporting a status code.
-        let detail = `HTTP ${response.status}`;
-        try {
-            const parsed = JSON.parse(await response.text());
-            if (parsed?.error?.message) detail = parsed.error.message;
-        } catch {
-            /* not JSON; the status stands */
-        }
-        throw new Error(detail);
-    }
+    if (!response.ok) throw new Error(await describeFailure(response));
 
     const extension = kind === 'pdf' ? 'pdf' : (EXTENSION[format] ?? 'png');
     const fileName = fileNameFor(target, index, extension, total);
     const filePath = path.join(outputDir, fileName);
     fs.writeFileSync(filePath, Buffer.from(await response.arrayBuffer()));
 
-    const credits = Number(response.headers.get('x-ironfang-credits'));
+    // What the render counted on the billing account: the meter and the
+    // quantity committed there. A cache hit names its meter and counts 0.
+    const quantity = Number(response.headers.get('x-ironfang-quantity'));
     return {
         target: target || (kind === 'image' ? input('template') : 'html'),
         path: filePath,
         bytes: fs.statSync(filePath).size,
-        credits: Number.isFinite(credits) ? credits : 0,
+        meter: response.headers.get('x-ironfang-meter') || null,
+        quantity: Number.isInteger(quantity) && quantity >= 0 ? quantity : 0,
         cached: response.headers.get('x-ironfang-cache') === 'hit',
         renderMs: Number(response.headers.get('x-ironfang-render-ms')) || null,
     };
+}
+
+/**
+ * describeFailure turns an error response into one line. The API writes its
+ * messages for a person - "This month's free allowance is used up", "too many
+ * renders of that site per minute" - so the message is passed through, after
+ * the status and the code to branch on. A billing refusal also names the
+ * product and meter it refused and when the free allowance renews, and
+ * Retry-After says when trying again can succeed. The request id is what to
+ * quote to support.
+ */
+async function describeFailure(response) {
+    let parsed = null;
+    try {
+        parsed = JSON.parse(await response.text());
+    } catch {
+        /* not JSON; the status stands */
+    }
+    const e = parsed && typeof parsed.error === 'object' && parsed.error ? parsed.error : {};
+    const text = (v) => (typeof v === 'string' && v.trim() ? v.trim() : '');
+    const code = text(e.code);
+    let line = `HTTP ${response.status}`;
+    if (code) line += ` ${code}`;
+    if (text(e.message)) line += `: ${text(e.message)}`;
+
+    const context = [];
+    if (text(e.product)) context.push(`product ${text(e.product)}`);
+    if (text(e.meter)) context.push(`meter ${text(e.meter)}`);
+    if (text(e.reset_at)) context.push(`free allowance renews ${text(e.reset_at)}`);
+    const retry = (response.headers.get('retry-after') || '').trim();
+    if (/^\d+$/.test(retry)) context.push(`retry after ${retry}s`);
+    if (text(parsed?.request_id)) context.push(`request ${text(parsed.request_id)}`);
+    if (context.length) line += ` (${context.join(', ')})`;
+    return line;
 }
 
 /* --------------------------------- summary -------------------------------- */
@@ -196,13 +221,13 @@ function writeSummary(results, failures) {
         (r) =>
             `| \`${r.target}\` | \`${r.path}\` | ${(r.bytes / 1024).toFixed(0)} KB | ${
                 r.cached ? 'cache' : `${r.renderMs ?? '?'} ms`
-            } | ${r.credits} |`
+            } | ${r.meter ? `${r.quantity} on \`${r.meter}\`` : '-'} |`
     );
     const failed = failures.map((f) => `| \`${f.target}\` | ${f.message} |`);
 
     let md = `## Ironfang Render\n\n`;
     if (rows.length) {
-        md += `| Source | File | Size | Time | Credits |\n|---|---|---|---|---|\n${rows.join('\n')}\n\n`;
+        md += `| Source | File | Size | Time | Counted |\n|---|---|---|---|---|\n${rows.join('\n')}\n\n`;
     }
     if (failed.length) {
         md += `### Failed\n\n| Source | Why |\n|---|---|\n${failed.join('\n')}\n\n`;
@@ -261,7 +286,8 @@ async function main() {
             results.push(result);
             info(
                 `${result.path}  ${(result.bytes / 1024).toFixed(0)} KB  ` +
-                    `${result.cached ? 'from cache' : `${result.renderMs} ms`}  ${result.credits} credit(s)`
+                    `${result.cached ? 'from cache' : `${result.renderMs} ms`}` +
+                    (result.meter ? `  counted ${result.quantity} on ${result.meter}` : '')
             );
         } catch (err) {
             failures.push({ target: target || 'html', message: err.message });
@@ -273,7 +299,9 @@ async function main() {
 
     setOutput('files', JSON.stringify(results.map((r) => r.path)));
     setOutput('count', String(results.length));
-    setOutput('credits', String(results.reduce((total, r) => total + r.credits, 0)));
+    // A step renders one kind, so everything it counted is on one meter.
+    setOutput('meter', results.find((r) => r.meter)?.meter ?? '');
+    setOutput('quantity', String(results.reduce((total, r) => total + r.quantity, 0)));
 
     if (failures.length && boolInput('fail-on-error', true)) {
         throw new Error(`${failures.length} of ${targets.length} renders failed`);

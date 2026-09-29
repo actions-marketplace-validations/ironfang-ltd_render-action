@@ -4,6 +4,11 @@ Formerly `renderwolf-action`: workflows that still say
 `ironfang-ltd/renderwolf-action@v1` keep working, because GitHub redirects
 the old name.
 
+v2 follows Ironfang's move from credits to metered usage: the `credits`
+output is replaced by `meter` and `quantity`, and a failed render reports the
+API's error code, with the product, meter and allowance renewal when billing
+refused it. Inputs are unchanged.
+
 Capture screenshots and PDFs of pages from a workflow. Point it at a deploy
 preview and keep the images as build artefacts, print a table of what was
 captured into the job summary, or generate images as part of a release.
@@ -12,15 +17,16 @@ No dependencies: one file, Node 20, `fetch`. Nothing is bundled and there is no
 `node_modules` to keep in step with the source.
 
 ```yaml
-- uses: ironfang-ltd/render-action@v1
+- uses: ironfang-ltd/render-action@v2
   with:
     api-key: ${{ secrets.IRONFANG_API_KEY }}
     urls: https://example.com/
 ```
 
-Get a key from the [Ironfang portal](https://portal.ironfang.com). A free
-account renders 250 credits a month with no card; free output carries a small
-Ironfang Render badge, and any paid plan removes it.
+Get a key from the [Ironfang portal](https://portal.ironfang.com). Renders
+are billed to your organisation's Ironfang billing account: each kind of render
+counts against a meter with a monthly free allowance, and paid usage beyond it
+is switched on in Billing in the portal.
 
 ## Auditing a deploy preview
 
@@ -37,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: shots
-        uses: ironfang-ltd/render-action@v1
+        uses: ironfang-ltd/render-action@v2
         with:
           api-key: ${{ secrets.IRONFANG_API_KEY }}
           urls: |
@@ -54,7 +60,7 @@ jobs:
           name: visual-audit
           path: audit/
 
-      - run: echo "${{ steps.shots.outputs.count }} pages, ${{ steps.shots.outputs.credits }} credits"
+      - run: echo "${{ steps.shots.outputs.count }} pages, ${{ steps.shots.outputs.quantity }} counted on ${{ steps.shots.outputs.meter }}"
 ```
 
 Add `device: mobile` in a matrix to audit both viewports, or `dark-mode: true`
@@ -90,14 +96,23 @@ to catch a dark theme that only breaks in CI.
 |---|---|
 | `files` | JSON array of the files written, in the order the URLs were given. |
 | `count` | How many files were written. |
-| `credits` | Total credits the step spent. Cache hits are free and count as zero. |
+| `meter` | The billing meter the renders counted against: `render.screenshot`, `render.pdf` or `render.image`. Empty when nothing was rendered. |
+| `quantity` | The total the step counted on that meter, one per render. Cache hits count zero. |
 
 ## Notes
 
 Renders run one at a time. The API rate-limits per account and per target host,
 and a job firing forty at once would spend its budget finding that out.
 
-Identical requests are served from cache and cost nothing, so re-running a
-workflow on an unchanged page is free.
+An identical request made again within ten minutes may be served from cache,
+which counts nothing. After that it is a new render.
+
+A failed render is reported on one line with the HTTP status, the API's error
+code (for example `free_allowance_exhausted` or `target_rate_limited`) and its
+message. When billing refused the render, the line also names the product, the
+meter and when the free allowance renews, and `billing_temporarily_unavailable`
+says how many seconds to wait before retrying. Billing refusals are resolved in
+Billing in the portal, or when the month rolls over; nothing was rendered or
+counted.
 
 Full API reference: <https://ironfang.com/render/docs>
