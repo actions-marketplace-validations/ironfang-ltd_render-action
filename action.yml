@@ -81,8 +81,10 @@ outputs:
     description: JSON array of the files written, in the order the URLs were given.
   count:
     description: How many files were written.
-  credits:
-    description: Total credits the step spent. Cache hits cost nothing and count as zero.
+  meter:
+    description: The billing meter the step's renders counted against, e.g. render.screenshot. Empty when nothing was rendered.
+  quantity:
+    description: The total quantity the step counted on that meter. Cache hits count zero.
 
 runs:
   using: node20
