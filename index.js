@@ -104,16 +104,41 @@ function fileNameFor(target, index, extension, total) {
     return name;
 }
 
+// lines splits a multi-line input into its non-empty lines.
+function lines(name) {
+    return input(name).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+}
+
+// successRules is the success_rules the inputs ask for, or undefined. A
+// status rule needs a URL: raw HTML has no status.
+function successRules(target) {
+    const statuses = target
+        ? input('fail-on-status').split(/[\s,]+/).filter(Boolean).map((v) => (/^\d+$/.test(v) ? Number(v) : v))
+        : [];
+    const rules = {};
+    if (statuses.length) rules.fail_on_status = statuses;
+    if (lines('require-text').length) rules.require_text = lines('require-text');
+    if (lines('forbid-text').length) rules.forbid_text = lines('forbid-text');
+    return Object.keys(rules).length ? rules : undefined;
+}
+
 function requestFor(target, kind, format) {
     const common = {
         width: intInput('width'),
         height: intInput('height'),
         delay_ms: intInput('delay-ms'),
     };
+    // The browser's language and clock, and what should fail a render: the
+    // same for a screenshot and a PDF.
+    const page = {
+        locale: input('locale') || undefined,
+        timezone: input('timezone') || undefined,
+        success_rules: successRules(target),
+    };
     if (kind === 'pdf') {
         return {
             path: '/v1/pdf',
-            body: { url: target || undefined, html: input('html') || undefined, print_background: true },
+            body: { url: target || undefined, html: input('html') || undefined, print_background: true, ...page },
         };
     }
     if (kind === 'image') {
@@ -136,12 +161,14 @@ function requestFor(target, kind, format) {
             url: target || undefined,
             html: input('html') || undefined,
             full_page: boolInput('full-page') || undefined,
+            full_page_readiness: boolInput('full-page') && boolInput('load-lazy-content') ? 'scroll' : undefined,
             selector: input('selector') || undefined,
             device: device && device !== 'desktop' ? device : undefined,
             dark_mode: boolInput('dark-mode') || undefined,
             format,
             quality: intInput('quality'),
             ...common,
+            ...page,
         },
     };
 }

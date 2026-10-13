@@ -63,6 +63,25 @@ inputs:
   delay-ms:
     description: Extra wait after the page settles, in milliseconds.
     required: false
+  load-lazy-content:
+    description: With full-page, scroll down the page first so images and sections that load as they come into view are captured.
+    required: false
+    default: 'false'
+  fail-on-status:
+    description: Page statuses that fail the render instead of capturing them, comma-separated - e.g. "4xx, 5xx" or "404". URLs only. A failed render is not charged.
+    required: false
+  require-text:
+    description: Text that must be displayed on the page, one phrase per line. The render fails without it.
+    required: false
+  forbid-text:
+    description: Text that must not be displayed, one phrase per line - e.g. "Access denied". The render fails with it.
+    required: false
+  locale:
+    description: The browser's language, a BCP 47 tag such as de-DE - how the page formats dates and numbers, and the Accept-Language it is requested with. It does not change where the request comes from.
+    required: false
+  timezone:
+    description: The browser's clock, an IANA time zone such as Europe/Berlin. Defaults to UTC.
+    required: false
   fail-on-error:
     description: Fail the step if any render fails. Set false to capture what you can and carry on.
     required: false
