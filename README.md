@@ -86,9 +86,31 @@ to catch a dark theme that only breaks in CI.
 | `dark-mode` | `false` | Render as a visitor who prefers dark. |
 | `quality` | API default | 1-100, for `jpeg` and `webp`. |
 | `delay-ms` | - | Extra wait after the page settles. |
+| `load-lazy-content` | `false` | With `full-page`, scroll the page first so content that loads as it comes into view is captured. |
+| `fail-on-status` | - | Page statuses that fail the render instead of being captured, comma-separated: `4xx, 5xx` or `404`. URLs only. |
+| `require-text` | - | Text that must be displayed, one phrase per line. |
+| `forbid-text` | - | Text that must not be displayed, one phrase per line, e.g. `Access denied`. |
+| `locale` | - | The browser's language, e.g. `de-DE`: date and number formatting and `Accept-Language`. Not a network location. |
+| `timezone` | UTC | The browser's clock, e.g. `Europe/Berlin`. |
 | `fail-on-error` | `true` | Set `false` to capture what you can and carry on. |
 | `summary` | `true` | Write a table of what was captured to the job summary. |
 | `base-url` | production | Only to point at something other than production. |
+
+A render that a `fail-on-status`, `require-text` or `forbid-text` rule fails
+is refused with `success_rule_failed`, naming the rule, and is not charged. With
+`fail-on-error` it fails the step, so a deploy preview that answers 404 or shows
+a login page fails CI instead of capturing the error page:
+
+```yaml
+- uses: ironfang-ltd/render-action@v2
+  with:
+    api-key: ${{ secrets.IRONFANG_API_KEY }}
+    urls: ${{ steps.deploy.outputs.preview-url }}
+    full-page: true
+    load-lazy-content: true
+    fail-on-status: 4xx, 5xx
+    forbid-text: Sign in to continue
+```
 
 ## Outputs
 
